@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+        
+        
+        <context:component-scan base-package="controller" />
+        
+        <!-- start 注解的控制器适配器  、 注解的控制器映射器 -->
+        <!-- 
+        <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter.class"></bean>
+        <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping.class"></bean>
+        -->
+        <!-- end 注解的控制器适配器  、 注解的控制器映射器 -->
+        
+        <!-- 拦截器 可以用来做权限控制 、 全局过滤之类的东西 -->
+        <mvc:interceptors>
+            <bean class="common.springmvc.GlobalInterceptor"></bean>
+            <mvc:interceptor>
+                <mvc:mapping path="/user/*"/>
+                <bean class="common.springmvc.UserInterceptor"></bean>
+            </mvc:interceptor>
+        </mvc:interceptors>
+        
+        <!-- 默认异常处理类 -->
+        <bean class="common.springmvc.exception.DefaultExceptionHanlder"></bean>
+        <!-- 视图解析器 -->
+	   <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	      <property name="prefix" value="/WEB-INF/jsp/" />
+	      <property name="suffix" value=".jsp" />
+	   </bean>
+        
+        
+</beans>
