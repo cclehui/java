@@ -30,6 +30,7 @@ public class SimpleServer {
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipeline = Channels.pipeline();
                 pipeline.addLast(StringDecoder.class.getName(), new StringDecoder());
+                pipeline.addLast(StringHandler.class.getName(), new StringHandler());
 
                 return pipeline;
             }
