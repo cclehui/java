@@ -33,6 +33,8 @@ public class StringClient extends SimpleChannelUpstreamHandler {
         ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(input.getBytes());
 
         e.getChannel().write(channelBuffer);
+
+        count++;
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {

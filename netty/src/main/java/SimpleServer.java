@@ -6,6 +6,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.string.StringDecoder;
+import org.jboss.netty.handler.codec.string.StringEncoder;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
@@ -21,6 +22,10 @@ public class SimpleServer {
 
         logger.info("before start server");
 
+        logger.info(System.currentTimeMillis());
+
+//        System.exit(0);
+
         Integer port = new Integer(8500);
 
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -30,11 +35,14 @@ public class SimpleServer {
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipeline = Channels.pipeline();
                 pipeline.addLast(StringDecoder.class.getName(), new StringDecoder());
+                pipeline.addLast(StringEncoder.class.getName(), new StringEncoder());
                 pipeline.addLast(StringHandler.class.getName(), new StringHandler());
 
                 return pipeline;
             }
         });
+
+//        bootstrap.setOption();
 
         bootstrap.bind(new InetSocketAddress(port));
 

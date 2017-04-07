@@ -6,6 +6,8 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
+import java.util.Date;
+
 /**
  * Created by Administrator on 2017/3/25.
  */
@@ -23,7 +25,8 @@ public class StringHandler extends SimpleChannelHandler {
 
         ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(output.getBytes());
 
-        e.getChannel().write(channelBuffer);
+        //e.getChannel().write(channelBuffer);
+        e.getChannel().write("now time is " + new Date());
 
 
 
