@@ -1,3 +1,4 @@
+import org.apache.log4j.Logger;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -32,6 +33,8 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     private static final String NEWLINE = "\r\n";
 
+    protected static Logger logger = Logger.getLogger(WebSocketServerHandler.class.getName());
+
     private WebSocketServerHandshaker handshaker;
 
     @Override
@@ -41,6 +44,10 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             handleHttpRequest(ctx, (HttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
             handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+        } else {
+            logger.info("未知的messageEvent类型\t" + msg);
+            e.getChannel().close();
+            logger.info("未知的连接，关闭连接");
         }
     }
 

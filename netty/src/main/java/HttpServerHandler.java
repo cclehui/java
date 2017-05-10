@@ -169,7 +169,7 @@ public class HttpServerHandler extends SimpleChannelUpstreamHandler {
             if (curDataType == InterfaceHttpData.HttpDataType.Attribute) {
                 //普通post数据
                 Attribute attribute = (Attribute) item;
-                logger.info(attribute.getName() + "=>" + attribute.getValue());
+                logger.info("parse post data:\t" + attribute.getName() + "=>" + attribute.getValue());
                 postData.put(attribute.getName(), attribute.getValue());
 
             } else if (curDataType == InterfaceHttpData.HttpDataType.FileUpload) {
