@@ -1,24 +1,28 @@
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.log4j.Logger;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.timeout.IdleState;
-import org.jboss.netty.handler.timeout.IdleStateEvent;
 
 /**
  * Created by Administrator on 2017/5/9.
  */
-public class ChannelEventHandler extends SimpleChannelUpstreamHandler {
+public class ChannelEventHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = Logger.getLogger(ChannelEventHandler.class.getName());
 
-    public void handleUpstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
-        if (e instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent)e;
+    public void channelActive(final ChannelHandlerContext ctx) {
+        logger.info("新连接\t" + ctx.channel());
+    }
 
-            if (event.getState() == IdleState.ALL_IDLE) {
-                logger.info("连接timeout 被关闭\t" + e.getChannel());
-                e.getChannel().close();
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            //连接超时处理
+            IdleStateEvent event = (IdleStateEvent)evt;
+
+            if (event.state() == IdleState.ALL_IDLE) {
+                logger.info("连接timeout 被关闭\t" + ctx.channel());
+                ctx.channel().close();
             }
         }
     }

@@ -1,13 +1,15 @@
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import org.apache.log4j.Logger;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpContentCompressor;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
@@ -32,20 +34,20 @@ public class HttpServer {
         Integer port = new Integer(8500);
 
         ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.setFactory(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
-            public ChannelPipeline getPipeline() throws Exception {
-                ChannelPipeline pipeline = Channels.pipeline();
-                pipeline.addLast("decoder", new HttpRequestDecoder());
-                pipeline.addLast("aggrator", new HttpChunkAggregator(1048576));
-                pipeline.addLast("encoder", new HttpResponseEncoder());
-                pipeline.addLast("compressor", new HttpContentCompressor());
-                pipeline.addLast("server_handler", new HttpServerHandler());
-
-                return pipeline;
-            }
-        });
+        bootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        ChannelPipeline pipeline = socketChannel.pipeline();
+                        pipeline.addLast(new HttpRequestDecoder());
+                        pipeline.addLast(new HttpObjectAggregator(64 * 1024));
+                        pipeline.addLast(new HttpResponseEncoder());
+                        pipeline.addLast(new HttpServerHandler());
+                    }
+                });
 
 //        bootstrap.setOption();
 

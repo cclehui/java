@@ -1,40 +1,34 @@
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.log4j.Logger;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
 
 import java.util.Date;
 
 /**
  * Created by Administrator on 2017/3/25.
  */
-public class StringHandler extends SimpleChannelHandler {
+public class StringHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = Logger.getLogger(StringHandler.class.getName());
 
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        String input = (String)e.getMessage();
+        String input = (String)msg;
 
         logger.info("输入:\t" + input);
 
         String output = new StringBuilder(input).reverse().toString();
 
-        ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(output.getBytes());
-
-        //e.getChannel().write(channelBuffer);
-        e.getChannel().write("now time is " + new Date());
+        ctx.channel().write(output);
+        ctx.channel().write("now time is " + new Date());
 
 
 
     }
 
-    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-        e.getCause().printStackTrace();
-
-        ctx.getChannel().close();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.channel().close();
     }
+
 }

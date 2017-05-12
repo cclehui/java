@@ -1,24 +1,31 @@
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.internal.logging.InternalLogLevel;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Log4JLoggerFactory;
 import org.apache.log4j.Logger;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.codec.string.StringEncoder;
-import org.jboss.netty.handler.logging.LoggingHandler;
-import org.jboss.netty.handler.timeout.IdleStateHandler;
-import org.jboss.netty.logging.InternalLogLevel;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.logging.Log4JLoggerFactory;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.Timer;
-import org.jboss.netty.util.TimerTask;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.Timer;
+import io.netty.util.TimerTask;
 
 import java.net.InetSocketAddress;
+import java.nio.channels.Channels;
 import java.text.SimpleDateFormat;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -44,30 +51,49 @@ public class WebSocketServer {
         Integer port = new Integer(8500);
 
         ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.setFactory(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
+
+        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         //设置netty日志factory 用log4j输出日志
         InternalLoggerFactory.setDefaultFactory(new Log4JLoggerFactory());
 
-        //连接超时处理的timer
-        final Timer timer = new HashedWheelTimer();
+        //连接超时处理的timer netty 4.0以后不需要自己设置timmer了
+//        final Timer timer = new HashedWheelTimer();
 
-        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
-            public ChannelPipeline getPipeline() throws Exception {
-                ChannelPipeline pipeline = Channels.pipeline();
-                pipeline.addLast("logging", new LoggingHandler(InternalLogLevel.INFO));
-                pipeline.addLast("decoder", new HttpRequestDecoder());
-                pipeline.addLast("aggrator", new HttpChunkAggregator(65536));
-                pipeline.addLast("encoder", new HttpResponseEncoder());
-                pipeline.addLast("idle", new IdleStateHandler(timer, 0, 0, 30, TimeUnit.SECONDS));
-                pipeline.addLast("server_handler", new WebSocketServerHandler());
-                pipeline.addLast("event_handler", new ChannelEventHandler());
-
-                return pipeline;
-            }
-        });
+        bootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        ChannelPipeline pipeline = socketChannel.pipeline();
+                        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+//                        pipeline.addLast(new HttpRequestDecoder());
+                        pipeline.addLast(new HttpServerCodec());
+                        pipeline.addLast(new HttpObjectAggregator(64 * 1024));
+                        pipeline.addLast(new ChunkedWriteHandler());
+//                        pipeline.addLast(new HttpResponseEncoder());
+//                        pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
+                        pipeline.addLast(new IdleStateHandler(0, 0, 10, TimeUnit.SECONDS));
+                        pipeline.addLast(new WebSocketServerHandler());
+                        pipeline.addLast(new ChannelEventHandler());
+                    }
+                });
 
 //        bootstrap.setOption();
+//        bootstrap.setOption("", 128)
+//                .childOption(ChannelOption.SO_KEEPALIVE, true)
+//                .option(ChannelOption.TCP_NODELAY, true)
+//                // 使用内存池
+//                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+//                .option(ChannelOption.SO_SNDBUF, 16 * 1024)
+//                // 设置socket 发送 buffer为 16K
+//                .option(ChannelOption.SO_RCVBUF, 16 * 1024)
+//                // 设置socket 接受 buffer为 16K
+//                .option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 4 * 1024)
+//                .option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 8 * 1024);// 设置高低水位线
+//        // 默认高水位是32K，低水位是16K
+
+        logger.info("server listening at " + port);
 
         bootstrap.bind(new InetSocketAddress(port));
 

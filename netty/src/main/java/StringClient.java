@@ -1,28 +1,27 @@
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.log4j.Logger;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.*;
 
 /**
  * Created by Administrator on 2017/3/27.
  */
-public class StringClient extends SimpleChannelUpstreamHandler {
+public class StringClient extends ChannelInboundHandlerAdapter {
 
     private int count = 0;
 
     protected static Logger logger = Logger.getLogger(StringClient.class.getName());
 
-    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
 
         String message = "aaaaaaaaaaxxxxxxxxxxxxxxxx";
 
-        e.getChannel().write(ChannelBuffers.wrappedBuffer(message.getBytes()));
+        ctx.channel().write(message);
 
     }
 
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        String message = (String)e.getMessage();
+        String message = (String)msg;
 
         logger.info("收到回复:\t" + message);
 
@@ -30,21 +29,13 @@ public class StringClient extends SimpleChannelUpstreamHandler {
 
         String input = "now count is:\t" + count;
 
-        ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(input.getBytes());
-
-        e.getChannel().write(channelBuffer);
+        ctx.channel().write(input);
 
         count++;
     }
 
-    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-
-        e.getCause().printStackTrace();
-
-        e.getChannel().close();
-
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.channel().close();
     }
-
-
-
 }
