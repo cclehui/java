@@ -56,6 +56,7 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
 
             return;
         }
+
         if ("/favicon.ico".equals(req.getUri())) {
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND);
             sendHttpResponse(ctx, req, res);

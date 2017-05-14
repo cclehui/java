@@ -1,18 +1,19 @@
+package http;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import org.apache.log4j.Logger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Administrator on 2017/4/7.
@@ -42,9 +43,8 @@ public class HttpServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new HttpRequestDecoder());
+                        pipeline.addLast(new HttpServerCodec());
                         pipeline.addLast(new HttpObjectAggregator(64 * 1024));
-                        pipeline.addLast(new HttpResponseEncoder());
                         pipeline.addLast(new HttpServerHandler());
                     }
                 });
@@ -54,4 +54,5 @@ public class HttpServer {
         bootstrap.bind(new InetSocketAddress(port));
 
     }
+
 }
