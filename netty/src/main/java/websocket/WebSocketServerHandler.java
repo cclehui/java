@@ -1,16 +1,14 @@
+package websocket;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.websocketx.*;
 import org.apache.log4j.Logger;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.CharsetUtil;
+
+import java.sql.Connection;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpHeaders.*;
@@ -22,7 +20,7 @@ import static io.netty.handler.codec.http.HttpVersion.*;
  * Created by Administrator on 2017/4/7.
  */
 public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
-    private static final String WEBSOCKET_PATH = "/websocket";
+    public static final String WEBSOCKET_PATH = "/websocket";
 
     private static final String NEWLINE = "\r\n";
 
@@ -33,6 +31,7 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
+            logger.info("get http request....");
             handleHttpRequest(ctx, (HttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
             handleWebSocketFrame(ctx, (WebSocketFrame) msg);
@@ -44,7 +43,7 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
         ctx.fireChannelRead(msg);
     }
 
-    private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) {
+    private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) {
         // Allow only GET methods.
         if (req.getMethod() != GET) {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
@@ -54,13 +53,15 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
         // Send the demo page and favicon.ico
         if ("/".equals(req.getUri())) {
 
-            String content = getIndexContent(getWebSocketLocation(req));
-
-            ByteBuf contentByteBuf = Unpooled.wrappedBuffer(content.getBytes());
+            ByteBuf contentByteBuf = getIndexContent(getWebSocketLocation(req));
 
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, OK, contentByteBuf);
             res.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
-            setContentLength(res, content.length());
+
+            if (HttpHeaders.isKeepAlive(req)) {
+                res.headers().set(CONNECTION, Values.KEEP_ALIVE);//keep alive
+            }
+            setContentLength(res, contentByteBuf.readableBytes());
             sendHttpResponse(ctx, req, res);
 
             return;
@@ -72,19 +73,40 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         // websocke Handshake 握手
-        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                getWebSocketLocation(req), null, false);
+
+        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
         handshaker = wsFactory.newHandshaker(req);
-        if (handshaker == null) {
+        if(handshaker == null) {
             wsFactory.sendUnsupportedVersionResponse(ctx.channel());
         } else {
-            handshaker.handshake(ctx.channel(), req);
+            ChannelFuture handshakeFuture = handshaker.handshake(ctx.channel(), req);
+            handshakeFuture.addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (!future.isSuccess()) {
+                        ctx.fireExceptionCaught(future.cause());
+                    } else {
+                        ctx.fireUserEventTriggered(WebSocketServerProtocolHandler.ServerHandshakeStateEvent.HANDSHAKE_COMPLETE);
+                    }
+
+                }
+            });
         }
+
+        // websocke Handshake 握手 握手的动作交给 WebSocketServerProtocolHandler
+//        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+//                getWebSocketLocation(req), null, false);
+//        handshaker = wsFactory.newHandshaker(req);
+//        if (handshaker == null) {
+//            wsFactory.sendUnsupportedVersionResponse(ctx.channel());
+//        } else {
+//            handshaker.handshake(ctx.channel(), req);
+//        }
     }
 
     private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
         // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {
+            logger.info("fram instanceof CloseWebSocketFrame ccccccccc");
             handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame);
             return;
         }
@@ -98,10 +120,9 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         // Send the uppercase string back.
-        ByteBuf request = ((TextWebSocketFrame) frame).content();
-        String requestStr = request.toString();
-        System.err.println(String.format("Channel %s received %s", ctx.channel(), request));
-        ctx.channel().write(new TextWebSocketFrame(requestStr.toUpperCase()));
+        String request = ((TextWebSocketFrame) frame).text();
+        System.out.println(String.format("rrrrrrrr Channel %s received %s", ctx.channel(), request));
+        ctx.channel().writeAndFlush(new TextWebSocketFrame(request.toUpperCase()));
     }
 
     private static void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, DefaultFullHttpResponse res) {
@@ -125,9 +146,9 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
     }
 
 
-    protected static String getIndexContent(String webSocketLocation) {
+    protected static ByteBuf getIndexContent(String webSocketLocation) {
 
-        return "<html><head><title>Web Socket Test</title></head>" + NEWLINE +
+        return Unpooled.copiedBuffer("<html><head><title>Web Socket Test</title></head>" + NEWLINE +
                         "<body>" + NEWLINE +
                         "<script type=\"text/javascript\">" + NEWLINE +
                         "var socket;" + NEWLINE +
@@ -146,7 +167,7 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
                         "  };" + NEWLINE +
                         "  socket.onclose = function(event) {" + NEWLINE +
                         "    var ta = document.getElementById('responseText');" + NEWLINE +
-                        "    ta.value = ta.value + \"Web Socket closed\"; " + NEWLINE +
+                        "    ta.value = ta.value + " + NEWLINE + "\"Web Socket closed\"; " + NEWLINE +
                         "  };" + NEWLINE +
                         "} else {" + NEWLINE +
                         "  alert(\"Your browser does not support Web Socket.\");" + NEWLINE +
@@ -169,7 +190,7 @@ public class WebSocketServerHandler extends ChannelInboundHandlerAdapter {
                         "<textarea id=\"responseText\" style=\"width:500px;height:300px;\"></textarea>" + NEWLINE +
                         "</form>" + NEWLINE +
                         "</body>" + NEWLINE +
-                        "</html>" + NEWLINE;
+                        "</html>" + NEWLINE, CharsetUtil.UTF_8);
     }
 
     private static String getWebSocketLocation(HttpRequest req) {

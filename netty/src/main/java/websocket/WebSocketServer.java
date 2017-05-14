@@ -1,3 +1,5 @@
+package websocket;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -46,6 +48,9 @@ public class WebSocketServer {
 
         logger.info(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis()));
 
+//        logger.info(System.getProperty("user.dir"));
+//        String filePath = (WebSocketServer.class.getClass().getResource("/").getPath());
+//        logger.info(filePath);
 //        System.exit(0);
 
         Integer port = new Integer(8500);
@@ -63,18 +68,17 @@ public class WebSocketServer {
 
         bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
+                .handler(new LoggingHandler(LogLevel.INFO))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
-//                        pipeline.addLast(new HttpRequestDecoder());
+//                        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
                         pipeline.addLast(new HttpServerCodec());
                         pipeline.addLast(new HttpObjectAggregator(64 * 1024));
-                        pipeline.addLast(new ChunkedWriteHandler());
-//                        pipeline.addLast(new HttpResponseEncoder());
-//                        pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
-                        pipeline.addLast(new IdleStateHandler(0, 0, 10, TimeUnit.SECONDS));
-                        pipeline.addLast(new WebSocketServerHandler());
+                        pipeline.addLast(new IdleStateHandler(0, 0, 300, TimeUnit.SECONDS));
+//                        pipeline.addLast(new WebSocketServerHandler());
+                        pipeline.addLast(new IndexPageHandler());
+                        pipeline.addLast(new WebsocketFrameHandler());
                         pipeline.addLast(new ChannelEventHandler());
                     }
                 });
