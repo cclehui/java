@@ -7,13 +7,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.log4j.Logger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import websocket.ChannelEventHandler;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2017/4/7.
@@ -45,7 +48,9 @@ public class HttpServer {
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast(new HttpServerCodec());
                         pipeline.addLast(new HttpObjectAggregator(64 * 1024));
+                        pipeline.addLast(new IdleStateHandler(0, 0, 30, TimeUnit.SECONDS));
                         pipeline.addLast(new HttpServerHandler());
+                        pipeline.addLast(new ChannelEventHandler());
                     }
                 });
 

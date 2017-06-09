@@ -77,7 +77,9 @@ public class WebSocketServer {
                         pipeline.addLast(new HttpObjectAggregator(64 * 1024));
                         pipeline.addLast(new IdleStateHandler(0, 0, 300, TimeUnit.SECONDS));
 //                        pipeline.addLast(new WebSocketServerHandler());
-                        pipeline.addLast(new IndexPageHandler());
+                        pipeline.addLast(new WebSocketServerProtocolHandler(IndexPageHandler.WEBSOCKET_PATH, null, true));
+//                        pipeline.addLast(new IndexPageHandler());
+                        pipeline.addLast(new TempIndexPagerHandler(IndexPageHandler.WEBSOCKET_PATH));
                         pipeline.addLast(new WebsocketFrameHandler());
                         pipeline.addLast(new ChannelEventHandler());
                     }

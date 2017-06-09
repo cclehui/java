@@ -17,6 +17,7 @@ public class WebsocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
     Logger logger = Logger.getLogger(WebsocketFrameHandler.class);
 
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
+        logger.info("ffffffffffffffffff");
 
         // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {

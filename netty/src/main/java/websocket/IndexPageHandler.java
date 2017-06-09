@@ -14,6 +14,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 
@@ -30,9 +31,13 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
 
     public static final String WEBSOCKET_PATH = "/websocket";
 
+    protected static Logger logger = Logger.getLogger(IndexPageHandler.class);
+
     private static final String NEWLINE = "\r\n";
 
     protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+
+        logger.info("iiiiiiiiiiiiiiiiii");
 
         if (req.getMethod() != HttpMethod.GET) {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
@@ -65,26 +70,26 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
 
         // websocke Handshake 握手
 
-        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
-        WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
-        if(handshaker == null) {
-            wsFactory.sendUnsupportedVersionResponse(ctx.channel());
-        } else {
-            ChannelFuture handshakeFuture = handshaker.handshake(ctx.channel(), req);
-            handshakeFuture.addListener(new ChannelFutureListener() {
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (!future.isSuccess()) {
-                        ctx.fireExceptionCaught(future.cause());
-                    } else {
-                        ctx.fireUserEventTriggered(WebSocketServerProtocolHandler.ServerHandshakeStateEvent.HANDSHAKE_COMPLETE);
-                    }
-
-                }
-            });
-        }
-
-        Attribute<WebSocketServerHandshaker> handshakerAttribute =  ctx.channel().attr(ChannelConstant.handshakerAttributeKey);
-        handshakerAttribute.setIfAbsent(handshaker);
+//        WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
+//        WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
+//        if(handshaker == null) {
+//            wsFactory.sendUnsupportedVersionResponse(ctx.channel());
+//        } else {
+//            ChannelFuture handshakeFuture = handshaker.handshake(ctx.channel(), req);
+//            handshakeFuture.addListener(new ChannelFutureListener() {
+//                public void operationComplete(ChannelFuture future) throws Exception {
+//                    if (!future.isSuccess()) {
+//                        ctx.fireExceptionCaught(future.cause());
+//                    } else {
+//                        ctx.fireUserEventTriggered(WebSocketServerProtocolHandler.ServerHandshakeStateEvent.HANDSHAKE_COMPLETE);
+//                    }
+//
+//                }
+//            });
+//        }
+//
+//        Attribute<WebSocketServerHandshaker> handshakerAttribute =  ctx.channel().attr(ChannelConstant.handshakerAttributeKey);
+//        handshakerAttribute.setIfAbsent(handshaker);
     }
 
     private static void sendHttpResponse(ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
