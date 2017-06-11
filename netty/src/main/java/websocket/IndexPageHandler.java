@@ -14,6 +14,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -37,7 +38,6 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
 
     protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
 
-        logger.info("iiiiiiiiiiiiiiiiii");
 
         if (req.getMethod() != HttpMethod.GET) {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
@@ -67,6 +67,11 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
             sendHttpResponse(ctx, req, res);
             return;
         }
+
+        logger.info("iiiiiiiiiiiiiiiiii");
+
+        ReferenceCountUtil.retain(req);
+        ctx.fireChannelRead(req);
 
         // websocke Handshake 握手
 

@@ -6,6 +6,9 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -21,12 +24,15 @@ public class TempIndexPagerHandler extends SimpleChannelInboundHandler<FullHttpR
 
     private final String websocketPath;
 
+    protected Logger logger = Logger.getLogger(TempIndexPagerHandler.class);
+
     public TempIndexPagerHandler(String websocketPath) {
         this.websocketPath = websocketPath;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+        logger.info("http request:\txxxxxxxx\t" + req.toString());
         // Handle a bad request.
         if (!req.getDecoderResult().isSuccess()) {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
@@ -50,7 +56,9 @@ public class TempIndexPagerHandler extends SimpleChannelInboundHandler<FullHttpR
 
             sendHttpResponse(ctx, req, res);
         } else {
-            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND));
+            ReferenceCountUtil.retain(req);
+            ctx.fireChannelRead(req);
+//            sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, NOT_FOUND));
         }
     }
 

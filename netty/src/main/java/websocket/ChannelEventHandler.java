@@ -28,4 +28,10 @@ public class ChannelEventHandler extends ChannelInboundHandlerAdapter {
             }
         }
     }
+
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        logger.info("eeeeeeeeeeeeeeeeeeeee");
+        ctx.close();
+    }
 }
