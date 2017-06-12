@@ -17,11 +17,10 @@ public class WebsocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
     Logger logger = Logger.getLogger(WebsocketFrameHandler.class);
 
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
-        logger.info("ffffffffffffffffff");
 
         // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {
-            logger.info("fram instanceof CloseWebSocketFrame ccccccccc");
+            logger.info("client close frame...");
             getHandshaker(ctx.channel()).close(ctx.channel(), (CloseWebSocketFrame) frame);
             return;
         }
@@ -36,7 +35,7 @@ public class WebsocketFrameHandler extends SimpleChannelInboundHandler<WebSocket
 
         // 处理数据 Send the uppercase string back.
         String request = ((TextWebSocketFrame) frame).text();
-        logger.info(String.format("rrrrrrrr Channel %s received %s", ctx.channel(), request));
+        logger.info(String.format(" Channel %s received %s", ctx.channel(), request));
         ctx.channel().writeAndFlush(new TextWebSocketFrame(request.toUpperCase()));
     }
 

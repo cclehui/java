@@ -15,7 +15,10 @@ import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
+import models.template.ThymeLeafEngineUtil;
 import org.apache.log4j.Logger;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.*;
 
@@ -38,7 +41,6 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
 
     protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
 
-
         if (req.getMethod() != HttpMethod.GET) {
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN));
             return;
@@ -48,7 +50,8 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
         if ("/".equals(req.getUri())) {
 
             //ByteBuf contentByteBuf = getIndexContent(getWebSocketLocation(req));
-            ByteBuf contentByteBuf = getIndexContentFromFile("websocketIndex.html");
+            //ByteBuf contentByteBuf = getIndexContentFromFile("websocketIndex.html");
+            ByteBuf contentByteBuf = parseIndexContentFromFile("websocketIndex.html", req);
 
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, OK, contentByteBuf);
             res.headers().set(CONTENT_TYPE, "text/html; charset=UTF-8");
@@ -67,8 +70,6 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
             sendHttpResponse(ctx, req, res);
             return;
         }
-
-        logger.info("iiiiiiiiiiiiiiiiii");
 
         ReferenceCountUtil.retain(req);
         ctx.fireChannelRead(req);
@@ -118,6 +119,18 @@ public class IndexPageHandler extends SimpleChannelInboundHandler<FullHttpReques
         } else {
             return "ws://" + location;
         }
+    }
+
+    //Thymeleaf 模板引擎技术
+    protected static ByteBuf parseIndexContentFromFile(String fileName, FullHttpRequest req) {
+        TemplateEngine templateEngine = ThymeLeafEngineUtil.getClassLoaderTemplateEngine();
+
+        Context context = new Context();
+        context.setVariable("host", req.headers().get(HttpHeaders.Names.HOST));
+
+        String result = templateEngine.process(fileName, context);
+
+        return Unpooled.wrappedBuffer(result.getBytes());
     }
 
     protected static ByteBuf getIndexContentFromFile(String fileName) throws IOException {
