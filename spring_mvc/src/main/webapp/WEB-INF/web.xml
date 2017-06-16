@@ -9,12 +9,13 @@ http://java.sun.com/xml/ns/javaee "
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
+		<!--<param-value>/WEB-INF/classes/SpringApplicationContext.xml</param-value>-->
 		<param-value>classpath:SpringApplicationContext.xml</param-value>
 	</context-param>
 
-	<!--<listener>-->
-		<!--<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>-->
-	<!--</listener>-->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
 
 	<!--
 	   <context-param>

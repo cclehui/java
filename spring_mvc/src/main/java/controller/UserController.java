@@ -46,6 +46,8 @@ public class UserController {
 
         int totalUser = userDao.getUserListCount();
 
+        LoggerUtil.info("3333333\t" + totalUser);
+
         Pager pager = new Pager();
         pager.setTotalCount(totalUser);
         pager.setPageRowCount(page_size);
