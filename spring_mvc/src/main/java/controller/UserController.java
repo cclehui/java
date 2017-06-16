@@ -5,9 +5,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import common.LoggerUtil;
 import model.dao.UserDao;
 import model.po.User;
 
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,36 +27,37 @@ public class UserController {
 
     @RequestMapping(value = "/index")
     public ModelAndView index(HttpServletRequest request ) throws Exception {
-    	
+
     	int cur_page = 0;
     	if (request.getParameter("pg") != null) {
     		cur_page = Integer.parseInt(request.getParameter("pg"));
     	}
-    	
+
     	int page_size = 2;
     	int start = (cur_page - 1) * page_size;
     	start = start > 0 ? start : 0;
-        
+
+		LoggerUtil.info("1111111111111111");
+
         UserDao userDao = new UserDao();
         List<User> userList = userDao.getUserList(start, page_size);
-        
+
+		LoggerUtil.info("2222222222\t" + userList);
+
         int totalUser = userDao.getUserListCount();
-        
+
         Pager pager = new Pager();
         pager.setTotalCount(totalUser);
         pager.setPageRowCount(page_size);
         pager.setCurPage(cur_page);
         String pagerHtml = pager.getToolBar("/springmvc/user/index.do");
-        
-        
-        
-        
+
         ModelAndView modelAndView = new ModelAndView("user/index");
-        
+
         modelAndView.addObject("userList", userList);
         modelAndView.addObject("pagerHtml", pagerHtml);
         modelAndView.addObject("action", "index");
-        
+
         return modelAndView;
     }
     

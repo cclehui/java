@@ -34,7 +34,7 @@
         </mvc:interceptors>
         
         <!-- 默认异常处理类 -->
-        <bean class="common.springmvc.exception.DefaultExceptionHanlder"></bean>
+        <!--<bean class="common.springmvc.exception.DefaultExceptionHanlder"></bean>-->
         <!-- 视图解析器 -->
 	   <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 	      <property name="prefix" value="/WEB-INF/jsp/" />
