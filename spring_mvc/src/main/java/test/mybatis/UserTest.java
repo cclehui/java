@@ -1,6 +1,6 @@
 package test.mybatis;
 
-import static org.junit.Assert.*;
+//import static org.junit.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,13 +13,13 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.log4j.Logger;
-import org.junit.Test;
+//import org.junit.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class UserTest {
 
-	@Test
+	//@Test
 	public void testFindUserById() throws IOException {
 		
 //		SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(
