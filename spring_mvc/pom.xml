@@ -79,6 +79,16 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+            <!--把model.mybatis.mapper 包下的xml文件打包到class目录中-->
+          <include>**/*.xml</include>
+        </includes>
+      </resource>
+    </resources>
+
     <finalName>spring_mvc</finalName>
       <plugins>
           <plugin>

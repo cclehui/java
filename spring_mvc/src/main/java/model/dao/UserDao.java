@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import common.LoggerUtil;
 import org.apache.ibatis.session.SqlSession;
 
 import common.ContextUtil;
@@ -41,6 +42,8 @@ public class UserDao {
     	Map<String, Object> selectParams = new HashMap<String, Object>();
     	selectParams.put("start", offset);
     	selectParams.put("limit", limit);
+
+		LoggerUtil.info(selectParams.toString());
     	
         List<User> userList = sqlSession.selectList("model.mybatis.mapper.UserMapper.getUserList", selectParams);
         

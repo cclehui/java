@@ -6,6 +6,8 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
     
 	<mappers>
 	   <!--  <mapper resource="sqlmap/UserMapper.xml"/> -->
+          <!--<mapper resource="model/mybatis/mapper/UserMapper.xml"/>-->
 	   <package name="model.mybatis.mapper"/>
+		<!--<mapper class="model.mybatis.mapper.UserMapper" />-->
 	</mappers>
 </configuration>
