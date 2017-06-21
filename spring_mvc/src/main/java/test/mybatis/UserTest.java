@@ -59,10 +59,10 @@ public class UserTest {
 //
 //		System.out.println(user);
 //
-//        System.out.println("xxxxxxxxxxxxxxx");
-//
-//        user = sqlSession.selectOne("model.mybatis.mapper.UserMapper.findById" , 1);
-//        System.out.println(user);
+        System.out.println("xxxxxxxxxxxxxxx");
+
+        User user = sqlSession.selectOne("model.mybatis.mapper.UserMapper.findById" , 1);
+        System.out.println(user);
 
         System.out.println("yyyyyyyyyyyy");
 

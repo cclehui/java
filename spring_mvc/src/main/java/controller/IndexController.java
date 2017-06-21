@@ -12,7 +12,7 @@ public class IndexController {
     @RequestMapping(value = "/")
     public String index(HttpServletRequest request, HttpServletResponse response) {
 
-        //return "redirect:/user/index.do";
-        return "redirect:/test/hello.do";
+        return "redirect:/user/index.do";
+//        return "redirect:/test/hello.do";
     }
 }
