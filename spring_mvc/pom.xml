@@ -81,6 +81,9 @@
   <build>
     <resources>
       <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
         <directory>src/main/java</directory>
         <includes>
             <!--把model.mybatis.mapper 包下的xml文件打包到class目录中-->
